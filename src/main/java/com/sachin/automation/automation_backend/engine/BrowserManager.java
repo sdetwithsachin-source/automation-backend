@@ -5,15 +5,32 @@ import com.microsoft.playwright.*;
 
 public class BrowserManager {
 
+    private static Playwright playwright;
+    private static Browser browser;
+    private static BrowserContext context;
+    private static Page page;
+
     public static Page init() {
 
-        Playwright playwright = Playwright.create();
+        playwright = Playwright.create();
 
-        Browser browser = playwright.chromium().launch(
+        browser = playwright.chromium().launch(
                 new BrowserType.LaunchOptions().setHeadless(false)
         );
 
-        BrowserContext context = browser.newContext();
-        return context.newPage();
+        context = browser.newContext();
+        page = context.newPage();
+
+        return page;
+    }
+
+    // ✅ Quit method
+    public static void quit() {
+        if (page != null) page.close();
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
+
+        System.out.println("Browser closed successfully");
     }
 }
