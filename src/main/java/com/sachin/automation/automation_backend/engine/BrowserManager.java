@@ -13,23 +13,54 @@ public class BrowserManager {
 
     public static Page init() {
 
-        playwright = Playwright.create();
+        try {
+            System.out.println("===== BROWSER INIT STARTED =====");
 
-        // ✅ MUST be true for cloud (Render)
-        browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions().setHeadless(true)
-        );
+            // Step 1: Create Playwright
+            System.out.println("Creating Playwright instance...");
+            playwright = Playwright.create();
 
-        // ✅ Enable video recording
-        context = browser.newContext(
-                new Browser.NewContextOptions()
-                        .setRecordVideoDir(Paths.get("videos/"))
-                        .setRecordVideoSize(1280, 720)
-        );
+            // Step 2: Launch browser (headless is mandatory in cloud)
+            System.out.println("Launching Chromium browser...");
 
-        page = context.newPage();
+            browser = playwright.chromium().launch(
+                    new BrowserType.LaunchOptions()
+                            .setHeadless(true)
+                            .setArgs(java.util.Arrays.asList(
+                                    "--no-sandbox",
+                                    "--disable-setuid-sandbox",
+                                    "--disable-dev-shm-usage"
+                            ))
+            );
 
-        return page;
+            System.out.println("Browser launched successfully");
+
+            // Step 3: Create context with video recording
+            System.out.println("Creating browser context...");
+
+            context = browser.newContext(
+                    new Browser.NewContextOptions()
+                            .setRecordVideoDir(Paths.get("videos/"))
+                            .setRecordVideoSize(1280, 720)
+            );
+
+            System.out.println("Context created");
+
+            // Step 4: Open new page
+            page = context.newPage();
+
+            System.out.println("Page created successfully");
+            System.out.println("===== BROWSER INIT COMPLETED =====");
+
+            return page;
+
+        } catch (Exception e) {
+
+            System.err.println("===== BROWSER INIT FAILED =====");
+            e.printStackTrace(); // 🔥 THIS WILL SHOW REAL ROOT CAUSE
+
+            throw new RuntimeException("Browser initialization failed: " + e.getMessage());
+        }
     }
 
     // ✅ Get video path
@@ -39,6 +70,7 @@ public class BrowserManager {
                 return page.video().path().toString();
             }
         } catch (Exception e) {
+            System.err.println("Error fetching video path:");
             e.printStackTrace();
         }
         return "Video not available";
@@ -47,14 +79,32 @@ public class BrowserManager {
     // ✅ Quit method (VERY IMPORTANT for saving video)
     public static void quit() {
         try {
-            if (page != null) page.close();
-            if (context != null) context.close(); // ⚠️ This saves the video
-            if (browser != null) browser.close();
-            if (playwright != null) playwright.close();
+            System.out.println("Closing browser resources...");
 
-            System.out.println("Browser closed successfully");
+            if (page != null) {
+                page.close();
+                System.out.println("Page closed");
+            }
+
+            if (context != null) {
+                context.close(); // ⚠️ saves video
+                System.out.println("Context closed (video saved)");
+            }
+
+            if (browser != null) {
+                browser.close();
+                System.out.println("Browser closed");
+            }
+
+            if (playwright != null) {
+                playwright.close();
+                System.out.println("Playwright closed");
+            }
+
+            System.out.println("===== BROWSER CLOSED SUCCESSFULLY =====");
 
         } catch (Exception e) {
+            System.err.println("Error during browser quit:");
             e.printStackTrace();
         }
     }
