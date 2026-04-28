@@ -16,6 +16,7 @@ public class BrowserManager {
         try {
             System.out.println("===== BROWSER INIT STARTED =====");
 
+            System.setProperty("java.io.tmpdir", "/tmp");
             // Step 1: Create Playwright
             System.out.println("Creating Playwright instance...");
             playwright = Playwright.create();
@@ -29,7 +30,21 @@ public class BrowserManager {
                             .setArgs(java.util.Arrays.asList(
                                     "--no-sandbox",
                                     "--disable-setuid-sandbox",
-                                    "--disable-dev-shm-usage"
+                                    "--disable-dev-shm-usage",
+                                    "--disable-gpu",
+                                    "--disable-software-rasterizer",
+                                    "--disable-extensions",
+                                    "--disable-background-networking",
+                                    "--disable-background-timer-throttling",
+                                    "--disable-client-side-phishing-detection",
+                                    "--disable-default-apps",
+                                    "--disable-hang-monitor",
+                                    "--disable-popup-blocking",
+                                    "--disable-sync",
+                                    "--metrics-recording-only",
+                                    "--no-first-run",
+                                    "--no-zygote",
+                                    "--single-process"
                             ))
             );
 
