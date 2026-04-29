@@ -1,5 +1,5 @@
 # ✅ Playwright official Java image (comes with browsers & deps)
-FROM mcr.microsoft.com/playwright/java:v1.44.0-jammy
+FROM mcr.microsoft.com/playwright/java:v1.43.0-jammy
 
 WORKDIR /app
 
