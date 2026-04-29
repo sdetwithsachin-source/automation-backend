@@ -3,9 +3,13 @@ package com.sachin.automation.automation_backend.controller;
 import com.microsoft.playwright.Page;
 import com.sachin.automation.automation_backend.engine.ActionEngine;
 import com.sachin.automation.automation_backend.engine.BrowserManager;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,16 +61,44 @@ public class ExecutionController {
             );
 
         } finally {
-            // 🔥 MUST CLOSE FIRST (this saves video)
+            // 🔥 MUST CLOSE FIRST (saves video)
             System.out.println("Closing browser...");
             BrowserManager.quit();
 
-            // ✅ NOW safe to get video path
+            // ✅ Now safe to get video path
             videoPath = BrowserManager.getVideoPath();
             System.out.println("Video Path: " + videoPath);
         }
 
-        // ✅ Return after finally
-        return ResponseEntity.ok("Test Done. Video: " + videoPath);
+        // ✅ Return JSON instead of String
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Test Executed Successfully 🚀");
+        response.put("videoPath", videoPath);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    // 🎥 NEW API: Download Video
+    @GetMapping("/video")
+    public ResponseEntity<Resource> getVideo(@RequestParam String path) {
+        try {
+            File file = new File(path);
+
+            if (!file.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new UrlResource(file.toURI());
+
+            return ResponseEntity.ok()
+                                 .header("Content-Disposition", "attachment; filename=" + file.getName())
+                                 .header("Content-Type", "video/webm")
+                                 .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
