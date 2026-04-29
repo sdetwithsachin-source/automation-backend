@@ -1,23 +1,10 @@
-# Use full Ubuntu-based Java image (important)
-FROM eclipse-temurin:17-jdk-jammy
+# Use Playwright official image (BEST for stability)
+FROM mcr.microsoft.com/playwright/java:v1.44.0-jammy
 
 WORKDIR /app
 
-# Install basic tools + Node.js
-RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    ca-certificates \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js (required for Playwright)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
-
-# Install Playwright browsers + dependencies
-RUN npx playwright install --with-deps
+# 🔥 VERY IMPORTANT: prevent runtime downloads
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Copy project
 COPY . .
