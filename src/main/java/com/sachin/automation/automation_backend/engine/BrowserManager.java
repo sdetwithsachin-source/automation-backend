@@ -2,6 +2,7 @@ package com.sachin.automation.automation_backend.engine;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.LoadState;
+
 import java.nio.file.Paths;
 import java.util.Arrays;
 
@@ -22,19 +23,20 @@ public class BrowserManager {
             // 1. Create Playwright
             playwright = Playwright.create();
 
-            // 2. Launch browser (FIXED CONFIG)
+            // 2. Launch browser (✅ CLOUD SAFE)
             browser = playwright.chromium().launch(
                     new BrowserType.LaunchOptions()
-                            .setHeadless(false) // ✅ IMPORTANT: disable headless for proper video
+                            .setHeadless(true) // ✅ MUST be true in cloud
                             .setArgs(Arrays.asList(
                                     "--no-sandbox",
-                                    "--disable-dev-shm-usage"
+                                    "--disable-dev-shm-usage",
+                                    "--use-gl=swiftshader" // ✅ FIX for blank video
                             ))
             );
 
             System.out.println("Browser launched successfully");
 
-            // 3. Create context with VIDEO + VIEWPORT (CRITICAL)
+            // 3. Create context with video + viewport
             context = browser.newContext(
                     new Browser.NewContextOptions()
                             .setViewportSize(1280, 720) // ✅ REQUIRED
@@ -59,18 +61,18 @@ public class BrowserManager {
         }
     }
 
-    // ✅ Navigate with proper wait (VERY IMPORTANT)
+    // ✅ Navigate with proper wait
     public static void openUrl(String url) {
         try {
             System.out.println("Navigating to: " + url);
 
             page.navigate(url);
 
-            // Wait for full load (NO MORE BLANK VIDEO)
+            // Wait for proper load
             page.waitForLoadState(LoadState.DOMCONTENTLOADED);
             page.waitForLoadState(LoadState.NETWORKIDLE);
 
-            // Small buffer for rendering
+            // Small delay to ensure frames are recorded
             page.waitForTimeout(3000);
 
         } catch (Exception e) {
@@ -97,7 +99,7 @@ public class BrowserManager {
         try {
             System.out.println("Closing browser resources...");
 
-            // 🔥 IMPORTANT: allow video to flush properly
+            // Allow video to flush
             Thread.sleep(3000);
 
             if (page != null) {
@@ -106,7 +108,7 @@ public class BrowserManager {
             }
 
             if (context != null) {
-                context.close(); // ✅ this saves video
+                context.close(); // ✅ saves video
                 System.out.println("Context closed (video saved)");
             }
 
