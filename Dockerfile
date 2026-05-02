@@ -1,12 +1,10 @@
-# ✅ Playwright official Java image (comes with browsers & deps)
+# ✅ Playwright official Java image
 FROM mcr.microsoft.com/playwright/java:v1.43.0-jammy
 
 WORKDIR /app
 
-# ✅ Force Playwright to use preinstalled browsers
+# ✅ Use preinstalled browsers
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-
-# ✅ (Optional but recommended) Skip downloading other browsers
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # Copy project files
@@ -16,7 +14,5 @@ COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-EXPOSE 8080
-
-# Run application
-CMD ["java", "-jar", "target/automation-backend-0.0.1-SNAPSHOT.jar"]
+# ✅ IMPORTANT: use dynamic port from Render
+CMD ["sh", "-c", "java -Dserver.port=$PORT -jar target/automation-backend-0.0.1-SNAPSHOT.jar"]
