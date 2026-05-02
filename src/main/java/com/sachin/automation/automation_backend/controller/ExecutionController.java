@@ -15,9 +15,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/test")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // ✅ allow frontend access (can restrict later)
 public class ExecutionController {
 
+    // ✅ NEW: Health API (VERY IMPORTANT)
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
+    }
+
+    // 🚀 RUN TEST
     @PostMapping("/run")
     public ResponseEntity<?> runTest(@RequestBody Map<String, Object> request) {
 
@@ -37,7 +44,6 @@ public class ExecutionController {
             System.out.println("Total Steps: " + steps.size());
 
             // 🔥 Initialize browser
-            System.out.println("Initializing browser...");
             Page page = BrowserManager.init();
             System.out.println("Browser initialized successfully");
 
@@ -61,16 +67,24 @@ public class ExecutionController {
             );
 
         } finally {
-            // 🔥 MUST CLOSE FIRST (saves video)
+
+            // 🔥 CLOSE browser FIRST (this saves video)
             System.out.println("Closing browser...");
             BrowserManager.quit();
 
-            // ✅ Now safe to get video path
+            try {
+                // ✅ Wait briefly to ensure video is written
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // ✅ Get video path AFTER closing
             videoPath = BrowserManager.getVideoPath();
             System.out.println("Video Path: " + videoPath);
         }
 
-        // ✅ Return JSON instead of String
+        // ✅ Return response JSON
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Test Executed Successfully 🚀");
         response.put("videoPath", videoPath);
@@ -78,14 +92,14 @@ public class ExecutionController {
         return ResponseEntity.ok(response);
     }
 
-
-    // 🎥 NEW API: Download Video
+    // 🎥 DOWNLOAD VIDEO API
     @GetMapping("/video")
     public ResponseEntity<Resource> getVideo(@RequestParam String path) {
         try {
             File file = new File(path);
 
             if (!file.exists()) {
+                System.err.println("Video file not found: " + path);
                 return ResponseEntity.notFound().build();
             }
 
