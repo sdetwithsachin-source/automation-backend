@@ -13,6 +13,9 @@ public class BrowserManager {
     private static BrowserContext context;
     private static Page page;
 
+    // 🔥 NEW: store video path before closing
+    private static String videoPath = "Video not available";
+
     public static Page init() {
 
         try {
@@ -69,15 +72,9 @@ public class BrowserManager {
         }
     }
 
+    // ✅ RETURN STORED PATH
     public static String getVideoPath() {
-        try {
-            if (page != null && page.video() != null) {
-                return page.video().path().toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Video not available";
+        return videoPath;
     }
 
     public static void quit() {
@@ -85,6 +82,12 @@ public class BrowserManager {
             System.out.println("Closing browser resources...");
 
             Thread.sleep(3000);
+
+            // 🔥 STEP 4 FIX: capture video path BEFORE closing context
+            if (page != null && page.video() != null) {
+                videoPath = page.video().path().toString();
+                System.out.println("Captured Video Path: " + videoPath);
+            }
 
             if (page != null) page.close();
             if (context != null) context.close();
