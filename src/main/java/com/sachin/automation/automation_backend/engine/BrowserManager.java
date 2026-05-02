@@ -1,8 +1,9 @@
 package com.sachin.automation.automation_backend.engine;
 
 import com.microsoft.playwright.*;
-
+import com.microsoft.playwright.options.LoadState;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class BrowserManager {
 
@@ -17,51 +18,33 @@ public class BrowserManager {
             System.out.println("===== BROWSER INIT STARTED =====");
 
             System.setProperty("java.io.tmpdir", "/tmp");
-            // Step 1: Create Playwright
-            System.out.println("Creating Playwright instance...");
+
+            // 1. Create Playwright
             playwright = Playwright.create();
 
-            // Step 2: Launch browser (headless is mandatory in cloud)
-            System.out.println("Launching Chromium browser...");
-
+            // 2. Launch browser (FIXED CONFIG)
             browser = playwright.chromium().launch(
                     new BrowserType.LaunchOptions()
-                            .setHeadless(true)
-                            .setArgs(java.util.Arrays.asList(
+                            .setHeadless(false) // ✅ IMPORTANT: disable headless for proper video
+                            .setArgs(Arrays.asList(
                                     "--no-sandbox",
-                                    "--disable-setuid-sandbox",
-                                    "--disable-dev-shm-usage",
-                                    "--disable-gpu",
-                                    "--disable-software-rasterizer",
-                                    "--disable-extensions",
-                                    "--disable-background-networking",
-                                    "--disable-background-timer-throttling",
-                                    "--disable-client-side-phishing-detection",
-                                    "--disable-default-apps",
-                                    "--disable-hang-monitor",
-                                    "--disable-popup-blocking",
-                                    "--disable-sync",
-                                    "--metrics-recording-only",
-                                    "--no-first-run",
-                                    "--no-zygote",
-                                    "--single-process"
+                                    "--disable-dev-shm-usage"
                             ))
             );
 
             System.out.println("Browser launched successfully");
 
-            // Step 3: Create context with video recording
-            System.out.println("Creating browser context...");
-
+            // 3. Create context with VIDEO + VIEWPORT (CRITICAL)
             context = browser.newContext(
                     new Browser.NewContextOptions()
+                            .setViewportSize(1280, 720) // ✅ REQUIRED
                             .setRecordVideoDir(Paths.get("videos/"))
                             .setRecordVideoSize(1280, 720)
             );
 
             System.out.println("Context created");
 
-            // Step 4: Open new page
+            // 4. Create page
             page = context.newPage();
 
             System.out.println("Page created successfully");
@@ -70,11 +53,29 @@ public class BrowserManager {
             return page;
 
         } catch (Exception e) {
-
             System.err.println("===== BROWSER INIT FAILED =====");
-            e.printStackTrace(); // 🔥 THIS WILL SHOW REAL ROOT CAUSE
-
+            e.printStackTrace();
             throw new RuntimeException("Browser initialization failed: " + e.getMessage());
+        }
+    }
+
+    // ✅ Navigate with proper wait (VERY IMPORTANT)
+    public static void openUrl(String url) {
+        try {
+            System.out.println("Navigating to: " + url);
+
+            page.navigate(url);
+
+            // Wait for full load (NO MORE BLANK VIDEO)
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+
+            // Small buffer for rendering
+            page.waitForTimeout(3000);
+
+        } catch (Exception e) {
+            System.err.println("Error during navigation:");
+            e.printStackTrace();
         }
     }
 
@@ -96,13 +97,16 @@ public class BrowserManager {
         try {
             System.out.println("Closing browser resources...");
 
+            // 🔥 IMPORTANT: allow video to flush properly
+            Thread.sleep(3000);
+
             if (page != null) {
                 page.close();
                 System.out.println("Page closed");
             }
 
             if (context != null) {
-                context.close(); // ⚠️ saves video
+                context.close(); // ✅ this saves video
                 System.out.println("Context closed (video saved)");
             }
 
