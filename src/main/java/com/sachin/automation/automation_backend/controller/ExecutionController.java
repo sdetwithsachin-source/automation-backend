@@ -52,6 +52,17 @@ public class ExecutionController {
             // ✅ INIT BROWSER
             Page page = BrowserManager.init();
 
+            // ✅ CAPTURE BROWSER CONSOLE LOGS
+            page.onConsoleMessage(msg -> {
+
+                System.out.println(
+                        "BROWSER LOG: " + msg.text()
+                );
+
+                report.getConsoleLogs()
+                      .add(msg.text());
+            });
+
             ActionEngine engine = new ActionEngine(page);
 
             int stepNo = 1;
