@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Runtime Folders ###
+reports/
+screenshots/
+videos/
+traces/
