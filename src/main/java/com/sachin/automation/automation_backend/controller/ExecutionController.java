@@ -282,4 +282,41 @@ public class ExecutionController {
                     .build();
         }
     }
+
+    // 📊 REPORT API
+    @GetMapping("/report")
+    public ResponseEntity<?> getReport() {
+
+        try {
+
+            ObjectMapper mapper =
+                    new ObjectMapper();
+
+            File reportFile =
+                    new File("reports/report.json");
+
+            if (!reportFile.exists()) {
+
+                return ResponseEntity
+                        .notFound()
+                        .build();
+            }
+
+            Object report =
+                    mapper.readValue(
+                            reportFile,
+                            Object.class
+                    );
+
+            return ResponseEntity.ok(report);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .internalServerError()
+                    .body("Failed to load report");
+        }
+    }
 }
